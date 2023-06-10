@@ -6,26 +6,44 @@ using UnityEngine;
 public class Enemy : MonoBehaviour
 {
     public Player player;
-    public float health;
+    public float health =100f;
     public Animator anim;
     private float moveDistance =8f;
     private float attackDistance = 4f;
-    private float moveSpeed= .3f;
-    
+    private Manager gameManager;
+    private Collider enemyCollider;
+
+    public enum state
+    {
+        Idle = 0,
+        Move = 1,
+        Attack = 2,
+        Death = 3,
+    }
+
+    public enum type
+    {
+        Samurai = 0,
+        Ninja = 1,
+
+    }
+
+    public state EnemyState;
+    public type EnemyType;
 
 
     private void Awake()
     {
-        player = FindObjectOfType(typeof(Player)) as Player;
+        player = UnityEngine.Object.FindObjectOfType<Player>();
         anim = GetComponent<Animator>();
         base.transform.LookAt(player.transform.position);
+        gameManager = GetComponent<Manager>();
 
     }
 
     private void Update()
     {
 
-        EnemyMove();
     }
 
 
@@ -50,7 +68,7 @@ public class Enemy : MonoBehaviour
     private void move()
     {
         base.transform.LookAt(player.transform.position);
-        iTween.MoveBy(base.gameObject, iTween.Hash("z", moveSpeed, "time", 0.2f));
+        
     }
 
    
