@@ -6,10 +6,11 @@ using UnityEngine;
 public class Enemy : MonoBehaviour
 {
     public Player player;
-    public float health =100f;
+    public float health = 100f;
     public Animator anim;
-    private float moveDistance =8f;
+    private float moveDistance = 8f;
     private float attackDistance = 4f;
+    private float moveSpeed = .3f;
     private Manager gameManager;
     private Collider enemyCollider;
 
@@ -49,12 +50,25 @@ public class Enemy : MonoBehaviour
 
     public void EnemyMove()
     {
-        float dist = Vector3.Distance(base.transform.position,player.transform.position);
+        if(player.playerState == Player.State.Death)
+        {
+            return;
+        }
+
+        if (EnemyState == state.Death)
+        {
+            EnemyKilled();
+            return;
+        }
+       
+
+
+        float dist = Vector3.Distance(base.transform.position, player.transform.position);
         if (dist < attackDistance)
         {
             attack();
         }
-        else if (dist < moveDistance) 
+        else if (dist < moveDistance)
         {
             move();
         }
@@ -62,14 +76,30 @@ public class Enemy : MonoBehaviour
 
     private void attack()
     {
-        
+        base.transform.LookAt(player.transform.position);
+        base.transform.position = Vector3.MoveTowards(base.transform.position, player.transform.position, Time.deltaTime);
+        // anim.SetTrigger("attack");
+        Debug.Log("Enemy Attack called");
+        player.PlayerDamaged();
+
+    }
+
+    public void EnemyDamaged()
+    {
+        EnemyState = state.Death;
+
     }
 
     private void move()
     {
-        base.transform.LookAt(player.transform.position);
-        
+        base.transform.position = Vector3.MoveTowards(base.transform.position, player.transform.position, 4f);
+        Debug.Log("Enemy move called");
+
     }
 
-   
+    public void EnemyKilled()
+    {
+
+    }
+
 }

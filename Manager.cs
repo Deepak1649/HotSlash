@@ -20,8 +20,8 @@ public class Manager : MonoBehaviour
 
     public int EnemyCounter()
     {
-        List<Enemy> list = new List<Enemy>();  
-        for(int i = 0; i < enemies.Length; i++)
+        List<Enemy> list = new List<Enemy>();
+        for (int i = 0; i < enemies.Length; i++)
         {
             if (enemies[i].EnemyState != Enemy.state.Death)
             {
@@ -33,21 +33,22 @@ public class Manager : MonoBehaviour
 
     public void EnemyTurn()
     {
-        if(EnemyCounter() == 0)
+        if (EnemyCounter() == 0)
         {
             PlayerWin();
         }
 
-        for (int i = 0;i < enemies.Length; i++)
+        for (int i = 0; i < enemies.Length; i++)
         {
             enemies[i].EnemyMove();
         }
+        player.PlayerTurn();
 
     }
 
     private void PlayerWin()
     {
-       GameWinPanel.SetActive(true);
+        GameWinPanel.SetActive(true);
         Time.timeScale = 0f;
     }
 
