@@ -2,7 +2,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Collections;
+using Unity.VisualScripting;
 using UnityEngine;
+using static UnityEngine.GraphicsBuffer;
 
 public class Player : MonoBehaviour
 {
@@ -15,6 +17,7 @@ public class Player : MonoBehaviour
         Idle = 0,
         Move = 1,
         Death = 2,
+        Menu = 3,
     }
 
     public State playerState;
@@ -38,12 +41,16 @@ public class Player : MonoBehaviour
     public LayerMask GroundMask;
     public LayerMask selectionMask;
 
+    private Vector3 killedByLookPos;
+    private Player player;
+
     private void Start()
     {
         manager = FindObjectOfType<Manager>();
+        player = GetComponent<Player>();
         cam = Camera.main;
         linePosition = new Vector3[2];
-        linePosOffset = Vector3.up * .5f;
+        linePosOffset = Vector3.up * .05f;
     }
 
     public void Update()
@@ -61,6 +68,9 @@ public class Player : MonoBehaviour
             case State.Death:
 
                 break;
+            case State.Menu:
+
+                break;
         }
     }
 
@@ -73,23 +83,37 @@ public class Player : MonoBehaviour
     public void Move(Transform SelectedTarget)
     {
         target.transform.LookAt(base.transform.position);
-        base.transform.position = Vector3.MoveTowards(base.transform.position, SelectedTarget.position, 2f);
-        base.transform.position = SelectedTarget.transform.position;
-      
-        // anim.SetTrigger("attack");
-        Debug.Log("Called");
-        MoveComplete();
+        base.transform.LookAt(SelectedTarget.transform.position);
+        anim.SetTrigger("Move");
+
+        //base.transform.position = Vector3.MoveTowards(base.transform.position, SelectedTarget.transform.position , Time.deltaTime * 4);
+        //base.transform.position = SelectedTarget.transform.position;
+        iTween.MoveTo(base.gameObject, iTween.Hash("position", SelectedTarget.position,"speed",7f,"oncomplete","MoveComplete"));
+        
+        Debug.Log("Move Called");  
+    }
+
+   
+    public void KilledBy(Enemy enemyObject)
+    {
+        killedByLookPos = enemyObject.transform.position;
     }
 
     public void MoveComplete()
     {
+        Debug.Log("attack");
+        anim.SetTrigger("Attack");
         manager.EnemyTurn();
-        target.EnemyDamaged();
+        target.EnemyKilled();
         
     }
 
     public void PlayerTurn()
-    {
+    {if (manager.EnemyCounter() == 0)
+        {
+            manager.PlayerWin();
+        }
+        target = null;
         if (playerState != State.Death)
         {
             currentPlayerState(State.Idle);
@@ -102,11 +126,16 @@ public class Player : MonoBehaviour
     {
         if (playerState != State.Death)
         {
+            health -= 100f;
             if (health <= 0)
             {
                 currentPlayerState(State.Death);
                 anim.SetTrigger("death");
+                Debug.Log("Dead");
                 manager.PlayerLose();
+                base.transform.LookAt(killedByLookPos);
+                iTween.MoveBy(base.gameObject, iTween.Hash("z", -1.5f, "time", 0.5f, "islocal", true));
+                
             }
         }
     }
@@ -125,18 +154,23 @@ public class Player : MonoBehaviour
         lineRenderer.enabled = false;
         if ((bool)target)
         {
-            Move(target.transform);
+            Move(target.transform.GetChild(2).gameObject.transform);
             currentPlayerState(State.Move);
         }
     }
 
+//this is not on update how it is called as an update
     private void DragUpdate()
     {
+        
+        target = null;
         Ray ray = cam.ScreenPointToRay(Input.mousePosition);
+        
         RaycastHit hitInfo;
         if (Physics.Raycast(ray, out hitInfo, 100f, GroundMask))
         {
             lineTargetPos = hitInfo.point;
+            
             Enemy component = hitInfo.transform.GetComponent<Enemy>();
             if ((bool)component)
             {
@@ -150,6 +184,7 @@ public class Player : MonoBehaviour
         }
         linePosition[0] = base.transform.position + linePosOffset;
         linePosition[1] = linePosOffset + lineTargetPos;
+        //base.transform.LookAt(lineTargetPos);
         lineRenderer.SetPositions(linePosition);
         lineRenderer.enabled = true;
 

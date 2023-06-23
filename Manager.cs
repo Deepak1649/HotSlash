@@ -11,11 +11,14 @@ public class Manager : MonoBehaviour
     public Enemy[] enemies;
     public GameObject GameWinPanel;
     public GameObject GameOverPanel;
+    private float EnemyTurnTime = 0.5f;
+    private UIManager uiManager;
 
 
     private void Start()
     {
-        enemies = Resources.FindObjectsOfTypeAll(typeof(Enemy)) as Enemy[];
+        uiManager = UnityEngine.Object.FindObjectOfType<UIManager>();
+        enemies = UnityEngine.Object.FindObjectsOfType<Enemy>();
     }
 
     public int EnemyCounter()
@@ -23,7 +26,7 @@ public class Manager : MonoBehaviour
         List<Enemy> list = new List<Enemy>();
         for (int i = 0; i < enemies.Length; i++)
         {
-            if (enemies[i].EnemyState != Enemy.state.Death)
+            if (enemies[i].EnemyState != Enemy.state.Dead)
             {
                 list.Add(enemies[i]);
             }
@@ -33,28 +36,31 @@ public class Manager : MonoBehaviour
 
     public void EnemyTurn()
     {
-        if (EnemyCounter() == 0)
-        {
-            PlayerWin();
-        }
+        StartCoroutine(EnemyTurnRoutine());
+    }
 
+    private IEnumerator EnemyTurnRoutine()
+    {
+        yield return new WaitForEndOfFrame();
         for (int i = 0; i < enemies.Length; i++)
         {
             enemies[i].EnemyMove();
         }
+        yield return new WaitForSeconds(0.5f);
         player.PlayerTurn();
-
     }
 
-    private void PlayerWin()
+
+    public void PlayerWin()
     {
-        GameWinPanel.SetActive(true);
-        Time.timeScale = 0f;
+        uiManager.Win();
+        player.enabled = false;
     }
 
     public void PlayerLose()
     {
-        GameOverPanel.SetActive(true);
-        Time.timeScale = 0f;
+
+        player.enabled = false;
+        uiManager.Fail();
     }
 }

@@ -8,18 +8,26 @@ public class Enemy : MonoBehaviour
     public Player player;
     public float health = 100f;
     public Animator anim;
-    private float moveDistance = 8f;
-    private float attackDistance = 4f;
-    private float moveSpeed = .3f;
+    public float moveDistance = 8f;
+    public float attackDistance = 4f;
+    public float moveSpeed = .3f;
     private Manager gameManager;
     private Collider enemyCollider;
+    private float moveAmount = 3f;
+
+    [SerializeField]
+    public GameObject[] bloodPrefabs;
+    public GameObject[] bloodAirPrefabs;
+    public GameObject bloodAir;
+    public GameObject hitpos;
+    public float dist;
+    public int killAnim=1;
 
     public enum state
     {
         Idle = 0,
-        Move = 1,
-        Attack = 2,
-        Death = 3,
+        Dead = 1,
+        Block = 2,
     }
 
     public enum type
@@ -35,16 +43,12 @@ public class Enemy : MonoBehaviour
 
     private void Awake()
     {
+        hitpos=base.transform.GetChild(2).gameObject;
         player = UnityEngine.Object.FindObjectOfType<Player>();
         anim = GetComponent<Animator>();
         base.transform.LookAt(player.transform.position);
         gameManager = GetComponent<Manager>();
-
-    }
-
-    private void Update()
-    {
-
+        enemyCollider = GetComponent<Collider>();
     }
 
 
@@ -55,51 +59,108 @@ public class Enemy : MonoBehaviour
             return;
         }
 
-        if (EnemyState == state.Death)
+        if (EnemyState == state.Dead)
         {
-            EnemyKilled();
+           
             return;
         }
-       
+        if (EnemyState == state.Block)
+        {
+            EnemyState = state.Idle;
+            return;
+        }
 
 
-        float dist = Vector3.Distance(base.transform.position, player.transform.position);
-        if (dist < attackDistance)
+
+         dist = Vector3.Distance(base.transform.position, player.transform.position);
+        if (dist <= attackDistance)
         {
             attack();
         }
-        else if (dist < moveDistance)
+        else if (dist <= moveDistance)
         {
             move();
+        }
+        else
+        {
+            anim.SetTrigger("idle");        
         }
     }
 
     private void attack()
     {
         base.transform.LookAt(player.transform.position);
-        base.transform.position = Vector3.MoveTowards(base.transform.position, player.transform.position, Time.deltaTime);
-        // anim.SetTrigger("attack");
+        //base.transform.position = player.transform.position - new Vector3(1, 0, 1);
+        anim.SetTrigger("Attack");
+        iTween.MoveTo(base.gameObject, iTween.Hash("position", player.transform.position, "time", 0.3f, "oncompletetarget", base.gameObject, "oncomplete", "AttackComplete", "easetype", iTween.EaseType.easeInCubic));
         Debug.Log("Enemy Attack called");
-        player.PlayerDamaged();
+        player.KilledBy(this);
 
+    }
+
+    public void AttackComplete()
+    {
+        player.PlayerDamaged();
+        
     }
 
     public void EnemyDamaged()
     {
-        EnemyState = state.Death;
+        EnemyState = state.Dead;
 
     }
 
     private void move()
     {
-        base.transform.position = Vector3.MoveTowards(base.transform.position, player.transform.position, 4f);
+        base.transform.LookAt(player.transform.position);
+        //base.transform.position = Vector3.MoveTowards(base.transform.position, player.transform.position, 4f);
+        iTween.MoveBy(base.gameObject, iTween.Hash("z", moveAmount, "time", 1f, "oncomplete", "enemymovecomplete"));
+        anim.SetTrigger("Move");
         Debug.Log("Enemy move called");
 
     }
 
+    private void enemymovecomplete()
+    {
+        anim.SetTrigger("Idle");
+    }
+
     public void EnemyKilled()
     {
+        UpdateKillAnim();
+        anim.SetTrigger("Death");
+        EnemyState = state.Dead;
+        enemyCollider.enabled = false;
+        AddBlood();
+    }
 
+    private void AddBlood()
+    {
+        Debug.Log("blood");
+        // int num = UnityEngine.Random.Range(0, bloodPrefabs.Length);
+        // GameObject gameObject = UnityEngine.Object.Instantiate(bloodPrefabs[num], base.transform.position, base.transform.rotation);
+        // gameObject.transform.SetParent(base.transform.parent);
+        // if (Input.GetKeyDown(KeyCode.Space)){
+        //     Debug.Log("Inside 2nd blood");
+        //     num = UnityEngine.Random.Range(0, bloodAirPrefabs.Length);
+        // bloodAir = UnityEngine.Object.Instantiate(bloodAirPrefabs[num], base.transform.position, base.transform.rotation);
+        // bloodAir.transform.SetParent(base.transform);
+
+        // }
+            }
+
+    private void UpdateKillAnim()
+    {
+        // if (killAnim ==3)
+        // {
+        //     Destroy(bloodAir.gameObject);
+        // }
+        // if (killAnim < 3)
+        // {
+        //     anim.SetTrigger("kill" + killAnim);
+        //     iTween.MoveBy(base.gameObject, iTween.Hash("z", -1.5f, "time", 0.5f, "islocal", true));
+        //     killAnim++;
+        // }
     }
 
 }
