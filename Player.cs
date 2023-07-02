@@ -50,7 +50,7 @@ public class Player : MonoBehaviour
         player = GetComponent<Player>();
         cam = Camera.main;
         linePosition = new Vector3[2];
-        linePosOffset = Vector3.up * .05f;
+        //linePosOffset = Vector3.up * .05f;
     }
 
     public void Update()
@@ -83,12 +83,12 @@ public class Player : MonoBehaviour
     public void Move(Transform SelectedTarget)
     {
         target.transform.LookAt(base.transform.position);
-        base.transform.LookAt(SelectedTarget.transform.position);
+        base.transform.LookAt(target.transform.position);
         anim.SetTrigger("Move");
 
         //base.transform.position = Vector3.MoveTowards(base.transform.position, SelectedTarget.transform.position , Time.deltaTime * 4);
         //base.transform.position = SelectedTarget.transform.position;
-        iTween.MoveTo(base.gameObject, iTween.Hash("position", SelectedTarget.position,"speed",7f,"oncomplete","MoveComplete"));
+        iTween.MoveTo(base.gameObject, iTween.Hash("position", SelectedTarget.position,"speed",7f,"oncomplete","MoveComplete","easetype",iTween.EaseType.linear));
         
         Debug.Log("Move Called");  
     }
@@ -116,6 +116,7 @@ public class Player : MonoBehaviour
         target = null;
         if (playerState != State.Death)
         {
+            anim.SetTrigger("Idle");
             currentPlayerState(State.Idle);
         }
 
@@ -151,12 +152,13 @@ public class Player : MonoBehaviour
     private void StopDrag()
     {
         isDragging = false;
-        lineRenderer.enabled = false;
+        
         if ((bool)target)
         {
-            Move(target.transform.GetChild(2).gameObject.transform);
+            Move(target.transform.GetChild(0).gameObject.transform);
             currentPlayerState(State.Move);
         }
+        lineRenderer.enabled = false;
     }
 
 //this is not on update how it is called as an update

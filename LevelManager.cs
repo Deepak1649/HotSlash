@@ -5,6 +5,8 @@ using UnityEngine.SceneManagement;
 public class LevelManager : MonoBehaviour
 {
     private int currentLevel;
+    public GameObject MainMenu;
+    public GameObject Settings;
 
 
     public void NextLevel()
@@ -17,10 +19,23 @@ public class LevelManager : MonoBehaviour
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
-    private void exit()
+    public void exit()
     {
         
      Application.Quit();
-        
+    Debug.Log("Exit Pressed.");
     }
+
+    public void SettingsPressed()
+    {
+    Settings.SetActive(true);
+    MainMenu.SetActive(false);
+    }
+
+    public void BackSettingsPressed()
+    {
+    Settings.SetActive(false);
+    MainMenu.SetActive(true);
+    }
+
 }

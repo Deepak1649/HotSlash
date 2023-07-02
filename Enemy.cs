@@ -43,7 +43,7 @@ public class Enemy : MonoBehaviour
 
     private void Awake()
     {
-        hitpos=base.transform.GetChild(2).gameObject;
+        hitpos=base.transform.GetChild(0).gameObject;
         player = UnityEngine.Object.FindObjectOfType<Player>();
         anim = GetComponent<Animator>();
         base.transform.LookAt(player.transform.position);
@@ -83,7 +83,7 @@ public class Enemy : MonoBehaviour
         }
         else
         {
-            anim.SetTrigger("idle");        
+            anim.SetTrigger("Idle");        
         }
     }
 
@@ -137,16 +137,14 @@ public class Enemy : MonoBehaviour
     private void AddBlood()
     {
         Debug.Log("blood");
-        // int num = UnityEngine.Random.Range(0, bloodPrefabs.Length);
-        // GameObject gameObject = UnityEngine.Object.Instantiate(bloodPrefabs[num], base.transform.position, base.transform.rotation);
-        // gameObject.transform.SetParent(base.transform.parent);
-        // if (Input.GetKeyDown(KeyCode.Space)){
-        //     Debug.Log("Inside 2nd blood");
-        //     num = UnityEngine.Random.Range(0, bloodAirPrefabs.Length);
-        // bloodAir = UnityEngine.Object.Instantiate(bloodAirPrefabs[num], base.transform.position, base.transform.rotation);
-        // bloodAir.transform.SetParent(base.transform);
+         int num = UnityEngine.Random.Range(0, bloodPrefabs.Length);
+         GameObject gameObject = UnityEngine.Object.Instantiate(bloodPrefabs[num], base.transform.position, base.transform.rotation);
+         gameObject.transform.SetParent(base.transform.parent);
+            num = UnityEngine.Random.Range(0, bloodAirPrefabs.Length);
+         bloodAir = UnityEngine.Object.Instantiate(bloodAirPrefabs[num], base.transform.position, base.transform.rotation);
+         bloodAir.transform.SetParent(base.transform);
 
-        // }
+         
             }
 
     private void UpdateKillAnim()
