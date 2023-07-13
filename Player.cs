@@ -5,6 +5,7 @@ using Unity.Collections;
 using Unity.VisualScripting;
 using UnityEngine;
 using static UnityEngine.GraphicsBuffer;
+using Random = UnityEngine.Random;
 
 public class Player : MonoBehaviour
 {
@@ -43,6 +44,7 @@ public class Player : MonoBehaviour
 
     private Vector3 killedByLookPos;
     private Player player;
+    public int attackCount= 6;
 
     private void Start()
     {
@@ -77,6 +79,12 @@ public class Player : MonoBehaviour
     private void currentPlayerState(State state)
     {
         playerState = state;
+        if(playerState == State.Move)
+        {
+            manager.PlayParticles();
+        }else{
+            manager.PauseParticles();
+        }
 
     }
 
@@ -101,11 +109,18 @@ public class Player : MonoBehaviour
 
     public void MoveComplete()
     {
-        Debug.Log("attack");
-        anim.SetTrigger("Attack");
-        manager.EnemyTurn();
-        target.EnemyKilled();
         
+        Attack();
+        target.EnemyKilled();
+        manager.EnemyTurn();
+        
+        
+    }
+
+    public void Attack(){
+        int num = Random.Range(0,attackCount-1);
+        anim.SetTrigger("Attack" + num);
+        manager.camerashake(1f);
     }
 
     public void PlayerTurn()
@@ -131,7 +146,7 @@ public class Player : MonoBehaviour
             if (health <= 0)
             {
                 currentPlayerState(State.Death);
-                anim.SetTrigger("death");
+                anim.SetTrigger("Death0");
                 Debug.Log("Dead");
                 manager.PlayerLose();
                 base.transform.LookAt(killedByLookPos);
@@ -179,15 +194,19 @@ public class Player : MonoBehaviour
                 target = component;
                 Vector3 position = target.transform.position;
                 Vector3 normalized = (base.transform.position - position).normalized;
-                lineTargetPos = position + normalized;
+                lineTargetPos = position;
                 highlight.transform.position = position + linePosOffset;
                 highlight.SetActive(true);
+               
             }
         }
-        linePosition[0] = base.transform.position + linePosOffset;
-        linePosition[1] = linePosOffset + lineTargetPos;
+        linePosition[0] = base.transform.GetChild(2).transform.position ;
+        // Debug.Log(base.transform.GetChild(2).transform.localPosition);
+        Debug.Log(lineTargetPos);
+        linePosition[1] = lineTargetPos;
         //base.transform.LookAt(lineTargetPos);
         lineRenderer.SetPositions(linePosition);
+        // lineRenderer.useWorldSpace = false;
         lineRenderer.enabled = true;
 
     }

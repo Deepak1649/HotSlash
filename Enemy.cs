@@ -2,18 +2,21 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class Enemy : MonoBehaviour
 {
     public Player player;
-    public float health = 100f;
+    private float health = 2f;
     public Animator anim;
     public float moveDistance = 8f;
     public float attackDistance = 4f;
     public float moveSpeed = .3f;
-    private Manager gameManager;
+    public Manager gameManager;
     private Collider enemyCollider;
     private float moveAmount = 3f;
+
+    public int attackCount = 6;
 
     [SerializeField]
     public GameObject[] bloodPrefabs;
@@ -21,7 +24,7 @@ public class Enemy : MonoBehaviour
     public GameObject bloodAir;
     public GameObject hitpos;
     public float dist;
-    public int killAnim=1;
+    public int killAnim =0;
 
     public enum state
     {
@@ -45,9 +48,8 @@ public class Enemy : MonoBehaviour
     {
         hitpos=base.transform.GetChild(0).gameObject;
         player = UnityEngine.Object.FindObjectOfType<Player>();
-        anim = GetComponent<Animator>();
+        // anim = GetComponent<Animator>();
         base.transform.LookAt(player.transform.position);
-        gameManager = GetComponent<Manager>();
         enemyCollider = GetComponent<Collider>();
     }
 
@@ -61,7 +63,7 @@ public class Enemy : MonoBehaviour
 
         if (EnemyState == state.Dead)
         {
-           
+            UpdateKillAnim();
             return;
         }
         if (EnemyState == state.Block)
@@ -91,9 +93,12 @@ public class Enemy : MonoBehaviour
     {
         base.transform.LookAt(player.transform.position);
         //base.transform.position = player.transform.position - new Vector3(1, 0, 1);
-        anim.SetTrigger("Attack");
+
+        int num = Random.Range(0,attackCount-1);
+        anim.ResetTrigger("Idle");
+        anim.SetTrigger("Attack" + num);
+
         iTween.MoveTo(base.gameObject, iTween.Hash("position", player.transform.position, "time", 0.3f, "oncompletetarget", base.gameObject, "oncomplete", "AttackComplete", "easetype", iTween.EaseType.easeInCubic));
-        Debug.Log("Enemy Attack called");
         player.KilledBy(this);
 
     }
@@ -115,6 +120,7 @@ public class Enemy : MonoBehaviour
         base.transform.LookAt(player.transform.position);
         //base.transform.position = Vector3.MoveTowards(base.transform.position, player.transform.position, 4f);
         iTween.MoveBy(base.gameObject, iTween.Hash("z", moveAmount, "time", 1f, "oncomplete", "enemymovecomplete"));
+        anim.ResetTrigger("Idle");
         anim.SetTrigger("Move");
         Debug.Log("Enemy move called");
 
@@ -127,17 +133,26 @@ public class Enemy : MonoBehaviour
 
     public void EnemyKilled()
     {
-        UpdateKillAnim();
-        anim.SetTrigger("Death");
+        
+        if(EnemyType == type.Ninja && gameManager.NonNinjaEnemyCount()>0)
+        {
+            anim.SetTrigger("Block");
+            EnemyState = state.Block;
+            // health--;
+        }else
+        {
         EnemyState = state.Dead;
         enemyCollider.enabled = false;
         AddBlood();
+        //Debug.Log(gameManager.NonNinjaEnemyCount());
+        }
+       
     }
 
     private void AddBlood()
     {
         Debug.Log("blood");
-         int num = UnityEngine.Random.Range(0, bloodPrefabs.Length);
+        int num = UnityEngine.Random.Range(0, bloodPrefabs.Length);
          GameObject gameObject = UnityEngine.Object.Instantiate(bloodPrefabs[num], base.transform.position, base.transform.rotation);
          gameObject.transform.SetParent(base.transform.parent);
             num = UnityEngine.Random.Range(0, bloodAirPrefabs.Length);
@@ -149,16 +164,17 @@ public class Enemy : MonoBehaviour
 
     private void UpdateKillAnim()
     {
-        // if (killAnim ==3)
-        // {
-        //     Destroy(bloodAir.gameObject);
-        // }
-        // if (killAnim < 3)
-        // {
-        //     anim.SetTrigger("kill" + killAnim);
-        //     iTween.MoveBy(base.gameObject, iTween.Hash("z", -1.5f, "time", 0.5f, "islocal", true));
-        //     killAnim++;
-        // }
+         if (killAnim ==3)
+         {
+             Destroy(bloodAir.gameObject);
+         }
+         if (killAnim < 3)
+         {
+            //  Debug.Log(killAnim);
+             anim.SetTrigger("Death" + killAnim);
+             iTween.MoveBy(base.gameObject, iTween.Hash("z", -1.5f, "time", 0.5f, "islocal", true));
+             killAnim++;
+         }
     }
 
 }

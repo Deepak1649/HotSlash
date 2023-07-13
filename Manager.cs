@@ -13,12 +13,16 @@ public class Manager : MonoBehaviour
     public GameObject GameOverPanel;
     private float EnemyTurnTime = 0.5f;
     private UIManager uiManager;
-
+    private ParticleSystem[] particleSystems;
+    
+    public GameObject Camera;
 
     private void Start()
     {
         uiManager = UnityEngine.Object.FindObjectOfType<UIManager>();
         enemies = UnityEngine.Object.FindObjectsOfType<Enemy>();
+        particleSystems = UnityEngine.Object.FindObjectsOfType<ParticleSystem>();
+        PauseParticles();
     }
 
     public int EnemyCounter()
@@ -50,6 +54,21 @@ public class Manager : MonoBehaviour
         player.PlayerTurn();
     }
 
+    public int NonNinjaEnemyCount()
+    {
+        List<Enemy> list =new List<Enemy>();
+        for (int i=0; i<enemies.Length; i++)
+        {
+            if(enemies[i].EnemyState!=Enemy.state.Dead && enemies[i].EnemyType == Enemy.type.Samurai)
+            {
+                Debug.Log(2);
+                list.Add(enemies[i]);
+            }
+        }
+        
+        return list.Count;  
+    }
+
 
     public void PlayerWin()
     {
@@ -62,5 +81,23 @@ public class Manager : MonoBehaviour
 
         player.enabled = false;
         uiManager.Fail();
+    }
+
+    public void PlayParticles()
+    {
+        for(int i =0;i<particleSystems.Length; i++){
+            particleSystems[i].Play();
+        }
+    }
+
+    public void PauseParticles()
+    {
+        for(int i =0;i<particleSystems.Length; i++){
+            particleSystems[i].Pause();
+        }
+    }
+
+    public void camerashake(float _amount){
+        iTween.ShakePosition(Camera.gameObject, iTween.Hash("amount", Vector3.one*_amount, "time",0.5f));
     }
 }

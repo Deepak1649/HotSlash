@@ -8,15 +8,37 @@ public class LevelManager : MonoBehaviour
     public GameObject MainMenu;
     public GameObject Settings;
 
+    public GameObject FadeInCanvas;
+
 
     public void NextLevel()
     {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
+        FadeInCanvas.gameObject.SetActive(true);
+        StartCoroutine(LoadNew());
     }
 
     public void ReloadLevel()
     {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        FadeInCanvas.gameObject.SetActive(true);
+        StartCoroutine(Reload());
+    }
+
+    public void MainMenuScene()
+    {
+        SceneManager.LoadScene("Menu");
+    }
+
+    public IEnumerator LoadNew()
+    {
+        yield return new WaitForSeconds(2f);
+    SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex+1);
+    
+    }
+
+     public IEnumerator Reload()
+    {
+    SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    yield return new WaitForSeconds(2f);
     }
 
     public void exit()
