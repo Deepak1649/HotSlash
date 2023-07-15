@@ -9,7 +9,7 @@ public class Enemy : MonoBehaviour
     public Player player;
     private float health = 2f;
     public Animator anim;
-    public float moveDistance = 8f;
+    public float moveDistance = 16f;
     public float attackDistance = 4f;
     public float moveSpeed = .3f;
     public Manager gameManager;
@@ -37,6 +37,7 @@ public class Enemy : MonoBehaviour
     {
         Samurai = 0,
         Ninja = 1,
+        Boss =2,
 
     }
 
@@ -46,6 +47,10 @@ public class Enemy : MonoBehaviour
 
     private void Awake()
     {
+        if (EnemyType==type.Boss){
+            health = 3f;
+            moveDistance*=3;
+        };
         hitpos=base.transform.GetChild(0).gameObject;
         player = UnityEngine.Object.FindObjectOfType<Player>();
         // anim = GetComponent<Animator>();
@@ -134,12 +139,19 @@ public class Enemy : MonoBehaviour
     public void EnemyKilled()
     {
         
-        if(EnemyType == type.Ninja && gameManager.NonNinjaEnemyCount()>0)
+        if(EnemyType == type.Ninja && health >1f)
         {
             anim.SetTrigger("Block");
             EnemyState = state.Block;
-            // health--;
-        }else
+            health--;
+        }
+        else if(EnemyType ==type.Boss && health>1f)
+        {
+            anim.SetTrigger("Block");
+            EnemyState = state.Block;
+            health--;
+        }
+        else
         {
         EnemyState = state.Dead;
         enemyCollider.enabled = false;
